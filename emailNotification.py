@@ -39,12 +39,17 @@ def check_div_change():
 
         # Calculate the current hash
         current_hash = hashlib.md5(div_content.encode('utf-8')).hexdigest()
-
-        # Check if the div has changed
         if previous_hash is not None and current_hash != previous_hash:
             send_notification(f"The div has changed.\n\n{div_content}")
+        if previous_hash is not None:
+            if current_hash != previous_hash:
+                send_notification(f"The div has changed.\n\n{div_content}")
+            else:
+                # Send a notification that the div has not changed only for testing purposes
+                # Comment out or remove the next line in production
+                send_notification("The div has not changed.")
         else:
-            # This is the first time we're checking or the div has not changed; don't notify
+            # This is the first time we're checking; don't notify yet
             pass
 
         # Update the previous hash

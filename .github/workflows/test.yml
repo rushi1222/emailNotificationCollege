@@ -1,9 +1,8 @@
 name: Selenium Python Script
 
 on:
-    schedule:
-        - cron:  '0,45 0/2 * * *' # At minute 0 and 45 past every 2nd hour
-        - cron:  '30 1/2 * * *' # At minute 30 past every other 2nd hour    
+  schedule:
+    - cron: '*/10 * * * *' # This will run the job every 10 minutes
   workflow_dispatch:
 
 jobs:

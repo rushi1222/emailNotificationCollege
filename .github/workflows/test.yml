@@ -2,7 +2,7 @@ name: Selenium Python Script
 
 on:
   schedule:
-    - cron: '*/60 * * * *' # This will run the job every 10 minutes
+    - cron: '*/10 * * * *' # This will run the job every 10 minutes
   workflow_dispatch:
 
 jobs:
@@ -20,7 +20,7 @@ jobs:
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install selenium
+        pip install selenium requests  # hashlib, smtplib, and email are part of the Python standard library and do not need to be installed
 
     - name: Setup Firefox and Geckodriver
       run: |
@@ -33,4 +33,6 @@ jobs:
         SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
         RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }}
         SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}  # Renamed secret without the 'GITHUB_' prefix
+        GIST_ID: ${{ secrets.GIST_ID }}            # Make sure to add this secret in your repository settings
       run: python emailNotification.py

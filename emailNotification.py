@@ -5,61 +5,90 @@ from selenium.webdriver.support.ui import WebDriverWait
 import hashlib
 import smtplib
 from email.message import EmailMessage
+import requests
+import os
 
 # Configuration
 url = 'https://secure6.saashr.com/ta/6000630.careers?CareersSearch='
-div_class = 'c-jobs-list'  # Replace with actual class if different
-previous_hash = None
-browser = webdriver.Firefox()
+div_class = 'c-jobs-list'  # Replace with the actual class if different
+GH_TOKEN = os.getenv('GH_TOKEN')
+GIST_ID = os.getenv('GIST_ID')
+GIST_FILENAME = 'hash.txt'
+
+headers = {
+    'Authorization': f'token {GH_TOKEN}'
+}
 
 def send_notification(body):
     msg = EmailMessage()
     msg.set_content(body)
     msg['Subject'] = 'Change Detected!'
-    msg['From'] = 'k.rushi15108@gmail.com'
-    msg['To'] = 'k.rushi1222@gmail.com'
+    msg['From'] = os.getenv('SENDER_EMAIL')
+    msg['To'] = os.getenv('RECEIVER_EMAIL')
 
     # Configure the SMTP settings for your email server
     server = smtplib.SMTP('smtp.gmail.com', 587)  # 587 is typically used for starttls
     server.starttls()
-    server.login('k.rushi15108@gmail.com', 'qtwk vicf cfua obpl')  # Replace with actual credentials
+    server.login(os.getenv('SENDER_EMAIL'), os.getenv('SMTP_PASSWORD'))
     server.send_message(msg)
     server.quit()
 
-def check_div_change():
-    global previous_hash
-    # Open the website
-    browser.get(url)
-    try:
-        # Find the div by class name
-        WebDriverWait(browser, 10).until(
-            EC.presence_of_element_located((By.CLASS_NAME, div_class))
-        )
-        div_content = browser.find_element(By.CLASS_NAME, div_class).get_attribute('innerHTML')
+def get_previous_hash():
+    response = requests.get(f'https://api.github.com/gists/{GIST_ID}', headers=headers)
+    if response.status_code == 200:
+        gist_content = response.json()
+        return gist_content['files'][GIST_FILENAME]['content']
+    else:
+        print(f"Failed to get previous hash: {response.content}")
+        return None
 
-        # Calculate the current hash
-        current_hash = hashlib.md5(div_content.encode('utf-8')).hexdigest()
+def set_previous_hash(hash_value):
+    data = {
+        'files': {
+            GIST_FILENAME: {
+                'content': hash_value
+            }
+        }
+    }
+    response = requests.patch(f'https://api.github.com/gists/{GIST_ID}', headers=headers, json=data)
+    if response.status_code == 200:
+        print("Successfully updated the hash on Gist.")
+    else:
+        print(f"Failed to update hash: {response.content}")
+def check_div_change(previous_hash):
+    # Setup Firefox options
+    options = webdriver.FirefoxOptions()
+    options.headless = True  # Important for running in GitHub Actions environment
+    with webdriver.Firefox(options=options) as browser:
+        # Open the website
+        browser.get(url)
+        try:
+            # Find the div by class name
+            WebDriverWait(browser, 10).until(
+                EC.presence_of_element_located((By.CLASS_NAME, div_class))
+            )
+            div_content = browser.find_element(By.CLASS_NAME, div_class).get_attribute('innerHTML')
 
-        if previous_hash is not None:
-            if current_hash != previous_hash:
-                send_notification(f"The div has changed.\n\n{div_content}")
+            # Calculate the current hash
+            current_hash = hashlib.md5(div_content.encode('utf-8')).hexdigest()
+
+            # Compare the current hash with the previous hash
+            if previous_hash is not None:
+                if current_hash != previous_hash:
+                    send_notification(f"The div has changed.\n\n{div_content}")
+                else:
+                    send_notification("The div has not changed.")
             else:
-                send_notification("The div has not changed.")
-        else:
-            # This is the first time we're checking; store the hash but don't notify yet
-            print("First check, notification will not be sent.")
+                print("First check, notification will not be sent.")
 
-        # Update the previous hash
-        previous_hash = current_hash
+            # Update the previous hash
+            set_previous_hash(current_hash)
 
-        # Update the previous hash
-        previous_hash = current_hash
-
-    except Exception as e:
-        print(f"An error occurred: {e}")  # Print the exception
-
-    finally:
-        browser.quit()
+        except Exception as e:
+            print(f"An error occurred: {e}")  # Print the exception
+            send_notification(f"An error occurred while checking the div: {e}")
 
 if __name__ == "__main__":
-    check_div_change()
+    previous_hash = get_previous_hash()
+    check_div_change(previous_hash)
+

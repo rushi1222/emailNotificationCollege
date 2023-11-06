@@ -1,0 +1,72 @@
+
+Implementing persistence in GitHub Actions for a variable like previous_hash typically involves storing the value somewhere it can be retrieved from on subsequent runs. Options include:
+
+Artifacts: Saving the hash to a file and uploading it as an artifact, then downloading it on the next run.
+Cache: Using GitHub's cache to store and retrieve the hash.
+External Services: Using an external service like a database, a key-value store (like Redis), or even a simple storage solution like AWS S3 or GitHub Gists.
+For simplicity, here's an example using GitHub Gists to store the previous_hash:
+
+Step 1: Create a GitHub Gist
+Create a Gist on GitHub to store your hash. You'll need to save the Gist ID, which can be found in the Gist's URL.
+
+Step 2: Update Your Python Script
+Modify your Python script to download the hash from the Gist before it runs the check and upload the new hash after the check.
+
+Here's a simplified version of how you might adjust your code. You will need to install and import requests to handle HTTP requests:
+
+python
+Copy code
+import requests
+
+GIST_ID = 'your_gist_id_here'
+GIST_FILENAME = 'hash.txt'
+GITHUB_TOKEN = 'your_github_token_here'
+
+headers = {
+    'Authorization': f'token {GITHUB_TOKEN}'
+}
+
+def get_previous_hash():
+    # Get the content of the gist file
+    response = requests.get(f'https://api.github.com/gists/{GIST_ID}', headers=headers)
+    if response.status_code == 200:
+        gist_content = response.json()
+        return gist_content['files'][GIST_FILENAME]['content']
+    else:
+        return None
+
+def set_previous_hash(hash_value):
+    # Update the gist file with the new hash
+    data = {
+        'files': {
+            GIST_FILENAME: {
+                'content': hash_value
+            }
+        }
+    }
+    response = requests.patch(f'https://api.github.com/gists/{GIST_ID}', headers=headers, json=data)
+    return response.status_code == 200
+
+# In your main or wherever you call `check_div_change`:
+previous_hash = get_previous_hash()  # Retrieves the previous hash at the start
+# ... Run your checks
+set_previous_hash(current_hash)  # Updates the hash after checks
+Make sure to replace 'your_gist_id_here' with your actual Gist ID and 'your_github_token_here' with a valid GitHub token that has permissions to update Gists.
+
+Step 3: Update GitHub Action Workflow
+Make sure your GitHub Action workflow sets the GITHUB_TOKEN as an environment variable so it can be accessed by the script.
+
+yaml
+Copy code
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+Note: GitHub automatically creates a GITHUB_TOKEN secret to use in your workflow. You can use this token to authenticate in your workflow run.
+
+Step 4: Test Your Setup
+Trigger your GitHub Actions workflow and verify that it's able to retrieve and update the hash on the Gist.
+
+Keep in mind that this is a basic implementation and might need to be adjusted based on the exact requirements and security practices you wish to follow, especially with regards to handling access tokens securely.
+
+
+
+

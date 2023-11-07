@@ -88,6 +88,7 @@ def check_div_change(previous_hash):
             print(f"An error occurred: {e}")  # Print the exception
             send_notification(f"An error occurred while checking the div: {e}")
 
+
 if __name__ == "__main__":
     previous_hash = get_previous_hash()
     check_div_change(previous_hash)

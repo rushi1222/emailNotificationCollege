@@ -2,6 +2,7 @@ import hashlib
 import os
 import requests
 import smtplib
+import json  # Add this line here
 from email.message import EmailMessage
 from selenium import webdriver
 from selenium.webdriver.common.by import By

@@ -56,7 +56,9 @@ def set_previous_contents(contents):
     else:
         print(f"Failed to update contents: {response.content}")
 
-def check_div_change(previous_contents_list):
+def check_div_change(previous_contents_list, receiver_emails):
+    # Your existing code here, using receiver_emails as needed
+    # ...
     options = webdriver.FirefoxOptions()
     options.headless = True
     with webdriver.Firefox(options=options) as browser:
@@ -91,6 +93,7 @@ if __name__ == "__main__":
         os.getenv('RECEIVER_EMAIL2'),
         os.getenv('RECEIVER_EMAIL3'),
         os.getenv('RECEIVER_EMAIL4'),
+        os.getenv('RECEIVER_EMAIL5'),
     ]
     previous_contents_json = get_previous_contents()
     previous_contents_list = json.loads(previous_contents_json)["contents"] if previous_contents_json else []

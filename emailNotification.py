@@ -2,7 +2,6 @@ import hashlib
 import os
 import requests
 import smtplib
-import json  # Add this line here
 from email.message import EmailMessage
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -20,18 +19,18 @@ headers = {
     'Authorization': f'token {GH_TOKEN}'
 }
  
-def send_notification(subject, body, receiver_emails):
+# Functions
+def send_notification(subject, body):
     msg = EmailMessage()
     msg.set_content(body)
     msg['Subject'] = subject
     msg['From'] = os.getenv('SENDER_EMAIL')
-    msg['To'] = ', '.join(receiver_emails)  # Joining the list of receiver emails
+    msg['To'] = os.getenv('RECEIVER_EMAIL')
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
     server.login(os.getenv('SENDER_EMAIL'), os.getenv('SMTP_PASSWORD'))
     server.send_message(msg)
     server.quit()
-
 
 def get_previous_contents():
     response = requests.get(f'https://api.github.com/gists/{GIST_ID}', headers=headers)
@@ -56,9 +55,7 @@ def set_previous_contents(contents):
     else:
         print(f"Failed to update contents: {response.content}")
 
-def check_div_change(previous_contents_list, receiver_emails):
-    # Your existing code here, using receiver_emails as needed
-    # ...
+def check_div_change(previous_contents_list):
     options = webdriver.FirefoxOptions()
     options.headless = True
     with webdriver.Firefox(options=options) as browser:
@@ -87,16 +84,8 @@ def check_div_change(previous_contents_list, receiver_emails):
             print(f"An error occurred: {e}")
             send_notification("Error detected", f"An error occurred while checking the c-link__label elements: {e}")
 
+# Main execution
 if __name__ == "__main__":
-    receiver_emails = [
-        os.getenv('RECEIVER_EMAIL1'),
-        os.getenv('RECEIVER_EMAIL2'),
-        os.getenv('RECEIVER_EMAIL3'),
-        os.getenv('RECEIVER_EMAIL4'),
-        os.getenv('RECEIVER_EMAIL5'),
-    ]
     previous_contents_json = get_previous_contents()
     previous_contents_list = json.loads(previous_contents_json)["contents"] if previous_contents_json else []
-    check_div_change(previous_contents_list, receiver_emails)
-
-
+    check_div_change(previous_contents_list)

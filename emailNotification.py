@@ -7,6 +7,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+import json  # Add this line to import the json module
+
 
 # Configuration
 url = 'https://secure6.saashr.com/ta/6000630.careers?CareersSearch='

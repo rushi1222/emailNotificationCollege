@@ -20,28 +20,17 @@ GIST_FILENAME = 'contents.json'
 headers = {
     'Authorization': f'token {GH_TOKEN}'
 }
- 
-# Functions
-def send_notification(subject, body):
-    msg = EmailMessage()
-    msg.set_content(body)
-    msg['Subject'] = subject
-    msg['From'] = os.getenv('SENDER_EMAIL')
-    msg['To'] = os.getenv('RECEIVER_EMAIL')
-    server = smtplib.SMTP('smtp.gmail.com', 587)
-    server.starttls()
-    server.login(os.getenv('SENDER_EMAIL'), os.getenv('SMTP_PASSWORD'))
-    server.send_message(msg)
-    server.quit()
 
 def get_previous_contents():
     response = requests.get(f'https://api.github.com/gists/{GIST_ID}', headers=headers)
     if response.status_code == 200:
         gist_content = response.json()
         return gist_content['files'][GIST_FILENAME]['content']
+    elif response.status_code == 404:
+        print("Gist not found. Check GIST_ID and GH_TOKEN.")
     else:
         print(f"Failed to get previous contents: {response.content}")
-        return None
+    return None
 
 def set_previous_contents(contents):
     data = {
@@ -54,8 +43,23 @@ def set_previous_contents(contents):
     response = requests.patch(f'https://api.github.com/gists/{GIST_ID}', headers=headers, json=data)
     if response.status_code == 200:
         print("Successfully updated the contents on Gist.")
+    elif response.status_code == 404:
+        print("Failed to update contents: Gist not found. Check GIST_ID and GH_TOKEN.")
     else:
         print(f"Failed to update contents: {response.content}")
+
+# Functions
+def send_notification(subject, body):
+    msg = EmailMessage()
+    msg.set_content(body)
+    msg['Subject'] = subject
+    msg['From'] = os.getenv('SENDER_EMAIL')
+    msg['To'] = os.getenv('RECEIVER_EMAIL')
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login(os.getenv('SENDER_EMAIL'), os.getenv('SMTP_PASSWORD'))
+    server.send_message(msg)
+    server.quit()
 
 def check_div_change(previous_contents_list):
     options = webdriver.FirefoxOptions()

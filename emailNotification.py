@@ -73,11 +73,17 @@ def check_div_change(previous_contents_list):
             added = [item for item in current_contents_list if item not in previous_contents_list]
             removed = [item for item in previous_contents_list if item not in current_contents_list]
 
+
+
             # Send notifications for changes
             if added:
                 send_notification("New items added", f"The following new items were added:\n\n{added}")
             if removed:
                 send_notification("Items removed", f"The following items were removed:\n\n{removed}")
+
+            #if no changes detected
+            if not added and not removed:
+                print("No changes detected.")
 
             # Update the previous contents
             set_previous_contents(json.dumps({"contents": current_contents_list}))

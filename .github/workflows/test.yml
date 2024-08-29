@@ -24,8 +24,9 @@ jobs:
 
       - name: Setup Firefox and Geckodriver
         run: |
-          choco install firefox --version=latest
-          choco install selenium-gecko-driver --version=latest
+          choco install firefox -y
+          choco install selenium-gecko-driver -y
+
 
       - name: Run the Selenium script
         env:

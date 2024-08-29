@@ -22,7 +22,7 @@ headers = {
 }
 
 def get_previous_contents():
-    response = requests.get(f'https://api.github.com/gists/{GIST_ID}', headers=headers)
+    response = requests.get(f'https://api.github.com/gists/rushi1222/{GIST_ID}', headers=headers)
     if response.status_code == 200:
         gist_content = response.json()
         return gist_content['files'][GIST_FILENAME]['content']
@@ -40,7 +40,7 @@ def set_previous_contents(contents):
             }
         }
     }
-    response = requests.patch(f'https://api.github.com/gists/{GIST_ID}', headers=headers, json=data)
+    response = requests.patch(f'https://api.github.com/gists/rushi1222/{GIST_ID}', headers=headers, json=data)
     if response.status_code == 200:
         print("Successfully updated the contents on Gist.")
     elif response.status_code == 404:

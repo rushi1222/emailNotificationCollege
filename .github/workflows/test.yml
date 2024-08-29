@@ -2,7 +2,7 @@ name: Selenium Python Script
 
 on:
   schedule:
-    - cron: '0 * * * *' # This will run the job at the start of every hour
+    - cron: '*/6 * * * *' # This will run the job every 6 minutes
   workflow_dispatch:
 
 jobs:
@@ -10,29 +10,29 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install selenium requests
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install selenium requests
 
-    - name: Setup Firefox and Geckodriver
-      run: |
-        choco install firefox
-        choco install selenium-gecko-driver
+      - name: Setup Firefox and Geckodriver
+        run: |
+          choco install firefox --version=latest
+          choco install selenium-gecko-driver --version=latest
 
-    - name: Run the Selenium script
-      env:
-        SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
-        SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-        RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }}
-        SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        GIST_ID: ${{ secrets.GIST_ID }}
-      run: python emailNotification.py
+      - name: Run the Selenium script
+        env:
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GIST_ID: ${{ secrets.GIST_ID }}
+        run: python emailNotification.py
